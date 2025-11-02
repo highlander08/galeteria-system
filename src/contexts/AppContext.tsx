@@ -8,7 +8,7 @@ export interface Produto {
   nome: string;
   preco: number;
   estoque: number;
-  categoria: 'galeto' | 'combo' | 'quentinha';
+  categoria: 'galeto' | 'combo' | 'quentinha' | 'produto_unico';
 }
 
 export interface Cliente {
@@ -103,7 +103,8 @@ const produtosIniciais: Produto[] = [
   { id: 4, nome: "Combo Executivo (Galeto + Refri 350ml)", preco: 35, estoque: 10, categoria: "combo" },
   { id: 5, nome: "Combo Família (2 Galetos + 2 Refri 1L)", preco: 90, estoque: 5, categoria: "combo" },
   { id: 6, nome: "Quentinha Simples", preco: 12, estoque: 50, categoria: "quentinha" },
-  { id: 7, nome: "Quentinha Completa", preco: 15, estoque: 40, categoria: "quentinha" }
+  { id: 7, nome: "Quentinha Completa", preco: 15, estoque: 40, categoria: "quentinha" },
+  { id: 8, nome: "Refrigerante 1L", preco: 8, estoque: 100, categoria: "produto_unico" }
 ];
 
 // === PROVIDER ===

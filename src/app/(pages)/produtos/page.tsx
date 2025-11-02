@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useApp } from '@/contexts/AppContext';
 import { Plus, Edit, Trash2, AlertCircle, Package } from 'lucide-react';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
 import Input from '@/components/Input';
 import Select from '@/components/Select';
+import ConfirmationToast from '@/components/ConfirmationToast';
 
 
 type Produto = {
@@ -14,19 +16,19 @@ type Produto = {
   nome: string;
   preco: number;
   estoque: number;
-  categoria: 'galeto' | 'combo' | 'quentinha';
+  categoria: 'galeto' | 'combo' | 'quentinha' | 'produto_unico';
 };
 
 export default function ProdutosPage() {
   const { produtos, addProduto, updateProduto, deleteProduto } = useApp();
-  const [filtro, setFiltro] = useState<'todos' | 'galeto' | 'combo' | 'quentinha'>('todos');
+  const [filtro, setFiltro] = useState<'todos' | 'galeto' | 'combo' | 'quentinha' | 'produto_unico'>('todos');
   const [mostrarForm, setMostrarForm] = useState(false);
   const [editando, setEditando] = useState<Produto | null>(null);
   const [form, setForm] = useState({
     nome: '',
     preco: '',
     estoque: '',
-    categoria: 'galeto' as 'galeto' | 'combo' | 'quentinha'
+    categoria: 'galeto' as 'galeto' | 'combo' | 'quentinha' | 'produto_unico'
   });
 
   const produtosFiltrados = filtro === 'todos' ? produtos : produtos.filter(p => p.categoria === filtro);
@@ -55,13 +57,15 @@ export default function ProdutosPage() {
       });
     }
     setForm({ nome: '', preco: '', estoque: '', categoria: 'galeto' });
+    toast.success(editando ? 'Produto atualizado com sucesso!' : 'Produto criado com sucesso!');
     setMostrarForm(false);
   };
 
   const cores = {
     galeto: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', icon: 'text-red-600' },
     combo: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', icon: 'text-orange-600' },
-    quentinha: { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', icon: 'text-yellow-600' }
+    quentinha: { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', icon: 'text-yellow-600' },
+    produto_unico: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', icon: 'text-blue-600' }
   };
 
   const getCategoriaIcon = (cat: string) => {
@@ -69,8 +73,25 @@ export default function ProdutosPage() {
       case 'galeto': return <Package className="w-5 h-5" />;
       case 'combo': return <Package className="w-5 h-5" />;
       case 'quentinha': return <Package className="w-5 h-5" />;
+      case 'produto_unico': return <Package className="w-5 h-5" />;
       default: return null;
     }
+  };
+
+  const handleDeleteComConfirmacao = (produto: Produto) => {
+    toast.custom(
+      (t) => (
+        <ConfirmationToast
+          t={t}
+          message={`Tem certeza que deseja excluir "${produto.nome}"?`}
+          onConfirm={() => {
+            deleteProduto(produto.id);
+            toast.error(`"${produto.nome}" foi excluído.`);
+          }}
+        />
+      ),
+      { duration: Infinity }
+    );
   };
 
   return (
@@ -92,7 +113,7 @@ export default function ProdutosPage() {
 
       {/* Filtros */}
       <div className="flex flex-wrap gap-3">
-        {(['todos', 'galeto', 'combo', 'quentinha'] as const).map(cat => (
+        {(['todos', 'galeto', 'combo', 'quentinha', 'produto_unico'] as const).map(cat => (
           <button
             key={cat}
             onClick={() => setFiltro(cat)}
@@ -102,7 +123,7 @@ export default function ProdutosPage() {
                 : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-red-300 hover:shadow'
             }`}
           >
-            {cat === 'todos' ? 'Todos' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+            {cat === 'todos' ? 'Todos' : cat.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
           </button>
         ))}
       </div>
@@ -176,6 +197,7 @@ export default function ProdutosPage() {
                   <option value="galeto">Galeto</option>
                   <option value="combo">Combo</option>
                   <option value="quentinha">Quentinha</option>
+                  <option value="produto_unico">Produto Único</option>
                 </Select>
               </div>
             </div>
@@ -210,7 +232,7 @@ export default function ProdutosPage() {
                 <div className="flex justify-between items-start mb-4">
                   <span className={`px-4 py-2 rounded-full text-sm font-bold ${cor.text} flex items-center gap-2`}>
                     {getCategoriaIcon(p.categoria)}
-                    {p.categoria}
+                    {p.categoria.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                   </span>
                   {p.estoque < 5 && (
                     <span className="flex items-center text-orange-600 text-sm font-bold">
@@ -257,7 +279,7 @@ export default function ProdutosPage() {
                     variant="destructive"
                     size="sm"
                     className="flex-1 font-semibold bg-red-600 hover:bg-red-700"
-                    onClick={() => deleteProduto(p.id)}
+                    onClick={() => handleDeleteComConfirmacao(p)}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>

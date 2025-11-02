@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useApp } from '@/contexts/AppContext';
 import {
   Plus, Trash2, ShoppingCart, User, Package, Clock,
@@ -10,6 +11,7 @@ import Button from '@/components/Button';
 import Card from '@/components/Card';
 import Select from '@/components/Select';
 import Input from '@/components/Input';
+import ConfirmationToast from '@/components/ConfirmationToast';
 
 export default function PedidosPage() {
   const { 
@@ -74,6 +76,23 @@ export default function PedidosPage() {
       cancelado: { bg: 'bg-red-100', text: 'text-red-700', icon: <XCircle className="w-4 h-4" /> }
     };
     return config[status] || config.todos;
+  };
+
+  const showConfirmation = (message: string, onConfirm: () => void, confirmText?: string, cancelText?: string) => {
+    toast.custom(
+      (t) => (
+        <ConfirmationToast
+          t={t}
+          message={message}
+          onConfirm={onConfirm}
+          confirmText={confirmText}
+          cancelText={cancelText}
+        />
+      ),
+      {
+        duration: Infinity, // O toast só fecha com ação do usuário
+      }
+    );
   };
 
   return (
@@ -446,8 +465,12 @@ export default function PedidosPage() {
                       <Button
                         size="sm"
                         onClick={() => {
-                          const pagou = confirm('O cliente já pagou?');
-                          updatePedidoStatus(p.id, 'entregue', pagou);
+                          showConfirmation(
+                            'O cliente já pagou o pedido?',
+                            () => { updatePedidoStatus(p.id, 'entregue', true); toast.success('Pedido marcado como retirado e pago!'); },
+                            'Sim, pagou',
+                            'Não pagou'
+                          );
                         }}
                         className="bg-green-600 hover:bg-green-700 text-white font-bold"
                       >
@@ -461,8 +484,12 @@ export default function PedidosPage() {
                       <Button
                         size="sm"
                         onClick={() => {
-                          const pagou = confirm('O cliente já pagou?');
-                          updatePedidoStatus(p.id, 'entregue', pagou);
+                          showConfirmation(
+                            'O cliente já pagou o pedido?',
+                            () => { updatePedidoStatus(p.id, 'entregue', true); toast.success('Pedido marcado como entregue e pago!'); },
+                            'Sim, pagou',
+                            'Não pagou'
+                          );
                         }}
                         className="bg-green-600 hover:bg-green-700 text-white font-bold"
                       >
@@ -476,9 +503,13 @@ export default function PedidosPage() {
                       <Button
                         size="sm"
                         onClick={() => {
-                          if (confirm('Tem certeza que deseja cancelar este pedido?\nO estoque será devolvido.')) {
+                          showConfirmation(
+                            'Tem certeza que deseja cancelar este pedido? O estoque dos itens será devolvido.',
+                            () => {
                             cancelarPedido(p.id);
-                          }
+                              toast.error('Pedido cancelado.');
+                            }
+                          )
                         }}
                         className="bg-red-600 hover:bg-red-800 text-white font-bold"
                       >
